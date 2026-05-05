@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -58,8 +58,8 @@
             </div>
             <h2 class="text-2xl font-semibold text-gray-700 hidden md:block">Semi-Auto Campaign</h2>
             <div class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 border border-yellow-300">
-                <i class="fas fa-exclamation-triangle text-yellow-600"></i> 
-                Dhyan dein: Browser mein 'Pop-ups' ALLOW karein!
+                <i class="fas fa-info-circle text-yellow-600"></i> 
+                Direct API Link Mode Active (No Pop-up blocks!)
             </div>
         </header>
 
@@ -93,24 +93,17 @@
                 <!-- Settings Section -->
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-semibold mb-4 border-b pb-2"><i class="fas fa-sliders-h text-gray-400 mr-2"></i> Campaign Settings</h3>
-                    
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex-1">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Timer / Delay (Seconds)</label>
-                            <div class="flex items-center gap-2">
-                                <input type="number" id="delayTime" value="5" min="2" class="w-24 border border-gray-300 rounded-lg p-2 text-center focus:ring-2 focus:ring-green-500 outline-none">
-                                <span class="text-sm text-gray-500">sec delay naya tab khulne mein</span>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="mt-6">
                         <button id="startBtn" class="w-full bg-wa-green hover-bg-wa-green text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95 flex items-center justify-center gap-2">
                             <i class="fas fa-play"></i> Campaign Start Karein
                         </button>
-                        <button id="nextBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95 flex items-center justify-center gap-2 mt-3 hidden text-lg animate-pulse">
+                        
+                        <!-- Yahan Button ki jagah <a> tag use kiya hai taake click browser direct handle kare -->
+                        <a id="nextBtn" href="#" target="_blank" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95 items-center justify-center gap-2 mt-3 hidden text-lg animate-pulse text-center">
                             <i class="fas fa-paper-plane"></i> Send Next (<span id="nextNumberText">...</span>)
-                        </button>
+                        </a>
+                        
                         <button id="stopBtn" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition-transform transform active:scale-95 flex items-center justify-center gap-2 mt-3 hidden">
                             <i class="fas fa-stop-circle"></i> Campaign Reset Karein
                         </button>
@@ -186,7 +179,6 @@
         const startBtn = document.getElementById('startBtn');
         const nextBtn = document.getElementById('nextBtn');
         const stopBtn = document.getElementById('stopBtn');
-        const delayInput = document.getElementById('delayTime');
         const messageText = document.getElementById('messageText');
         const nextNumberText = document.getElementById('nextNumberText');
         
@@ -240,8 +232,7 @@
             contactsList.forEach((contact, index) => {
                 let statusBadge = `<span class="bg-gray-100 text-gray-600 py-1 px-2 rounded text-xs font-medium border">Pending</span>`;
                 if (contact.status === 'Opened') statusBadge = `<span class="bg-blue-100 text-blue-700 py-1 px-2 rounded text-xs font-medium border border-blue-200"><i class="fas fa-external-link-alt"></i> Tab Opened</span>`;
-                if (contact.status === 'Wait...') statusBadge = `<span class="bg-yellow-100 text-yellow-700 py-1 px-2 rounded text-xs font-medium border border-yellow-200"><i class="fas fa-spinner fa-spin"></i> Wait...</span>`;
-
+                
                 const tr = document.createElement('tr');
                 tr.id = `row-${index}`;
                 tr.className = "hover:bg-gray-50 transition-colors";
@@ -264,7 +255,6 @@
             
             let statusBadge = '';
             if (newStatus === 'Opened') statusBadge = `<span class="bg-blue-100 text-blue-700 py-1 px-2 rounded text-xs font-medium border border-blue-200"><i class="fas fa-external-link-alt"></i> Tab Opened</span>`;
-            else if (newStatus === 'Wait...') statusBadge = `<span class="bg-yellow-100 text-yellow-700 py-1 px-2 rounded text-xs font-medium border border-yellow-200"><i class="fas fa-spinner fa-spin"></i> Wait...</span>`;
             
             const statusCell = document.getElementById(`status-${index}`);
             if (statusCell) {
@@ -281,6 +271,7 @@
                 nextBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Next (<span id="nextNumberText">...</span>)';
                 nextBtn.classList.remove('bg-green-500');
                 nextBtn.classList.add('bg-blue-500');
+                nextBtn.href = "#";
             }
         }
 
@@ -298,6 +289,7 @@
             isCampaignRunning = true;
             startBtn.classList.add('hidden');
             nextBtn.classList.remove('hidden');
+            nextBtn.classList.add('flex'); // Add flex back
             stopBtn.classList.remove('hidden');
             
             updateNextButtonUI();
@@ -307,6 +299,7 @@
             isCampaignRunning = false;
             startBtn.classList.remove('hidden');
             nextBtn.classList.add('hidden');
+            nextBtn.classList.remove('flex');
             stopBtn.classList.add('hidden');
             
             contactsList.forEach((_, idx) => {
@@ -316,24 +309,25 @@
             showAlert('Campaign Reset', 'Aapka campaign wapas zero par aa gaya hai.');
         });
 
-        nextBtn.addEventListener('click', () => {
-            if (!isCampaignRunning) return;
+        nextBtn.addEventListener('click', (e) => {
+            if (!isCampaignRunning) {
+                e.preventDefault();
+                return;
+            }
             
             if (currentIndex >= contactsList.length) {
+                e.preventDefault(); // Don't open link when finished
                 isCampaignRunning = false;
                 startBtn.classList.remove('hidden');
                 nextBtn.classList.add('hidden');
+                nextBtn.classList.remove('flex');
                 stopBtn.classList.add('hidden');
                 showAlert('Campaign Completed', `Campaign khatam ho gaya! \nTotal Opened: ${successCount}`);
                 return;
             }
 
-            // Direct User Action - Bypasses Pop-up blocker
-            const contact = contactsList[currentIndex];
-            const text = encodeURIComponent(messageText.value);
-            const waUrl = `https://api.whatsapp.com/send?phone=${contact.phone}&text=${text}`;
-            
-            window.open(waUrl, '_blank');
+            // Notice: We DO NOT call e.preventDefault() here!
+            // Browser will open the link natively. We just update the logic for the next iteration.
 
             // Update Status in table
             updateRowStatus(currentIndex, 'Opened');
@@ -343,16 +337,30 @@
             currentIndex++;
             
             if (currentIndex >= contactsList.length) {
-                nextBtn.innerHTML = '<i class="fas fa-check"></i> Finish Campaign';
-                nextBtn.classList.replace('bg-blue-500', 'bg-green-500');
+                // Add a small delay so current click gets processed before we remove the link
+                setTimeout(() => {
+                    nextBtn.innerHTML = '<i class="fas fa-check"></i> Finish Campaign';
+                    nextBtn.classList.replace('bg-blue-500', 'bg-green-500');
+                    nextBtn.removeAttribute('href');
+                }, 100);
             } else {
-                updateNextButtonUI();
+                // Prepare button for the next click
+                setTimeout(() => {
+                    updateNextButtonUI();
+                }, 100);
             }
         });
 
         function updateNextButtonUI() {
             if(currentIndex < contactsList.length) {
-                document.getElementById('nextNumberText').innerText = contactsList[currentIndex].phone;
+                const contact = contactsList[currentIndex];
+                document.getElementById('nextNumberText').innerText = contact.phone;
+                
+                // Set the REAL URL directly on the <a> tag. 
+                // This bypasses any popup blockers because the user clicks an actual link.
+                const text = encodeURIComponent(messageText.value);
+                const waUrl = `https://api.whatsapp.com/send?phone=${contact.phone}&text=${text}`;
+                nextBtn.href = waUrl;
                 
                 // Highlight current row
                 contactsList.forEach((_, idx) => {
